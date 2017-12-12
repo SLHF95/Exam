@@ -1,0 +1,126 @@
+---
+title: "Assignment 1 - Language Development in ASD - part 4"
+author: "Sofie L. H. Frandsen, Kristian Isen, Astrid Lang Ledager"
+date: "August 10, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Welcome to the fourth exciting part of the Language Development in ASD exercise
+
+In this exercise we will assess how many participants we would need to adequately replicate our findings (ensuring our sample size is adequate, our alpha at 0.05 and our beta at 0.8).
+
+### Exercise 1
+
+How much power does your study have (if your model estimates are quite right)?
+- [GitHub]Load your dataset 
+```{r Load Libraries}
+library(pacman)
+p_load(lmerTest, modelr, simr, MASS)
+
+```
+
+Define working directory and load the data
+
+- Create a new variable called locpath (localpath)
+- Set it to be equal to your working directory
+- Move to that directory (setwd(locpath))
+- Load the data you saved last time (use read_csv(fileName))
+
+```{r Load Data}
+
+getwd()
+locpath=getwd()
+setwd(locpath)
+data = read.csv("ass1_LangASD.csv")
+
+```
+  
+Fit your favorite model
+```{r}
+model = lmer(CHI_MLU ~ 1 + VISIT + Diagnosis + types_CHI + verbalIQ +  (1+VISIT|SUBJ1), data = data)
+```
+
+Assess power for your main effects and interactions of interest.
+```{r}
+mluModel = lmer(CHI_MLU ~ 1 + VISIT + Diagnosis + types_CHI + verbalIQ + (1+VISIT|SUBJ1), data = data, REML = F)
+powerV = powerSim(mluModel, fixed("VISIT"), nsim = 20)
+
+powerD = powerSim(mluModel, fixed("Diagnosis"), nsim = 20)
+
+powerT = powerSim(mluModel, fixed("types_CHI"), nsim = 20)
+
+powervIQ = powerSim(mluModel, fixed("verbalIQ"), nsim = 20)
+
+powerV #0.076
+
+powerD
+summary(mluModel)
+
+powerT #0.0081
+
+powervIQ #0.02
+
+
+```
+ *the smaller the effect size, the more participants you need to get power*
+ 
+*the fewer simulations, the larger the confidence intervals*
+
+
+report the power analysis and comment on what you can (or cannot) use its estimates for.
+
+### Exercise 2
+
+How would you perform a more conservative power analysis?
+- Identify and justify a minimum effect size for each of your relevant effects
+- [GitHub] take the model from exercise 1 and replace the effects with the minimum effect size that you'd accept.
+- [GitHub] assess the power curve by Child.ID, identifying an ideal number of participants to estimate each effect
+```{r}
+summary(mluModel)
+#estimate minus half standard error
+0.1 - 0.01
+fixef(mluModel)["VISIT"] <- 0.09
+
+0.068 - 0.036
+fixef(mluModel)["Diagnosis"] <- 0.032
+
+0.008 - 0.0003
+fixef(mluModel)["types_CHI"] <- 0.008
+
+0.02 - 0.003
+fixef(mluModel)["verbalIQ"] <- 0.017
+
+powerCurveV = powerCurve(mluModel, fixed("VISIT"), along = "SUBJ1", nsim = 20)
+
+powerCurveD = powerCurve(mluModel, fixed("Diagnosis"), along = "SUBJ1", nsim = 20)
+
+powerCurveT = powerCurve(mluModel, fixed("types_CHI"), along = "SUBJ1", nsim = 20)
+
+powerCurveVIQ = powerCurve(mluModel, fixed("verbalIQ"), along = "SUBJ1", nsim = 20)
+
+plot(powerCurveV)
+plot(powerCurveD)
+plot(powerCurveT)
+plot(powerCurveVIQ)
+
+
+```
+x antal participants for a statistical power of 80
+
+- Report the power analysis and comment on what you can (or cannot) use its estimates for.
+
+
+
+### Exercise 3
+
+Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why.
+ 
+
+
+
+
+
